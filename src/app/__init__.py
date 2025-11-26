@@ -15,7 +15,7 @@ producer = KafkaProducer(bootstrap_servers=['localhost:9092'],
 def handle_message():
     message = request.json.get('message')
     result = messageService.process_message(message)
-    serialized_result = result.json()
+    serialized_result = json.dumps(result)
     producer.send('expense_service', serialized_result)
     return jsonify(result)
 
