@@ -19,11 +19,16 @@ producer = KafkaProducer(bootstrap_servers=kafka_bootstrap_servers,
 
 @app.route('/v1/ds/message', methods=['POST'])
 def handle_message():
+    user_id = request.headers.get('x-user-id')
+    if not user_id:
+        return jsonify({'error': 'x-user-id header is required'}), 400
+    
     message = request.json.get('message')
     result = messageService.process_message(message)
 
     if result is not None:
         serialized_result = result.serialize()
+        serialized_result['user_id'] = user_id
         producer.send('expense_service', serialized_result)
         return jsonify(serialized_result)
     else:
@@ -32,6 +37,10 @@ def handle_message():
 @app.route('/', methods=['GET'])
 def handle_get():
     return 'Hello world'
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return 'OK'
 
 
 if __name__ == "__main__":
